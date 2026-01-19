@@ -81,6 +81,7 @@ tabs = st.tabs([
 # TAB 0 – EQUIPES & USUÁRIOS
 # ======================================================
 with tabs[0]:
+    # ---------- CADASTRO DE EQUIPES ----------
     st.subheader("Cadastro de Equipes")
 
     with st.form("form_equipe"):
@@ -103,6 +104,7 @@ with tabs[0]:
 
     st.divider()
 
+    # ---------- CADASTRO DE USUÁRIOS ----------
     st.subheader("Cadastro de Usuários")
 
     df_eq = carregar_equipes()
@@ -134,69 +136,95 @@ with tabs[0]:
                 st.success("✅ Usuário cadastrado com sucesso!")
                 st.rerun()
 
-    # ===============================
-    # LISTAGEM E EXCLUSÃO
-    # ===============================
     st.divider()
-    st.subheader("📋 Equipes Cadastradas")
+
+    # ---------- RENOMEAR EQUIPE ----------
+    st.subheader("✏️ Renomear Equipe")
 
     df_eq = carregar_equipes()
+
+    if not df_eq.empty:
+        equipe_atual = st.selectbox("Equipe atual", df_eq["equipe"])
+        novo_nome = st.text_input("Novo nome da equipe")
+
+        if st.button("Salvar novo nome"):
+            if not novo_nome:
+                st.warning("Informe o novo nome.")
+            elif novo_nome in df_eq["equipe"].values:
+                st.warning("Já existe uma equipe com esse nome.")
+            else:
+                # Atualiza equipes
+                df_eq.loc[df_eq["equipe"] == equipe_atual, "equipe"] = novo_nome
+                df_eq.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
+
+                # Atualiza usuários
+                df_users = carregar_usuarios()
+                df_users.loc[df_users["equipe"] == equipe_atual, "equipe"] = novo_nome
+                df_users.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
+
+                # Atualiza metas
+                df_metas = carregar_metas()
+                df_metas.loc[df_metas["equipe"] == equipe_atual, "equipe"] = novo_nome
+                df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
+
+                st.success(f"Equipe **{equipe_atual}** renomeada para **{novo_nome}**.")
+                st.rerun()
+
+    st.divider()
+
+    # ---------- LISTAGEM E EXCLUSÃO ----------
+    st.subheader("📋 Equipes Cadastradas")
+
     df_users = carregar_usuarios()
 
-    if df_eq.empty:
-        st.info("Nenhuma equipe cadastrada.")
-    else:
-        for equipe in df_eq["equipe"]:
-            col1, col2 = st.columns([4, 1])
+    for equipe in df_eq["equipe"]:
+        col1, col2 = st.columns([4, 1])
 
-            with col1:
-                st.markdown(f"**🏷️ {equipe}**")
+        with col1:
+            st.markdown(f"**🏷️ {equipe}**")
 
-            usuarios_da_equipe = df_users[df_users["equipe"] == equipe]
+        usuarios_da_equipe = df_users[df_users["equipe"] == equipe]
 
-            with col2:
-                if not usuarios_da_equipe.empty:
-                    st.button(
-                        "❌ Excluir",
-                        key=f"del_eq_{equipe}",
-                        disabled=True,
-                        help="Exclua os usuários antes"
-                    )
-                else:
-                    if st.button("🗑️ Excluir", key=f"del_eq_{equipe}"):
-                        df_eq = df_eq[df_eq["equipe"] != equipe]
-                        df_eq.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
-                        st.success(f"Equipe **{equipe}** excluída.")
-                        st.rerun()
+        with col2:
+            if not usuarios_da_equipe.empty:
+                st.button(
+                    "❌ Excluir",
+                    disabled=True,
+                    help="Exclua os usuários antes",
+                    key=f"del_eq_{equipe}"
+                )
+            else:
+                if st.button("🗑️ Excluir", key=f"del_eq_{equipe}"):
+                    df_eq = df_eq[df_eq["equipe"] != equipe]
+                    df_eq.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
+                    st.success(f"Equipe **{equipe}** excluída.")
+                    st.rerun()
 
     st.divider()
     st.subheader("👥 Usuários por Equipe")
 
-    if df_users.empty:
-        st.info("Nenhum usuário cadastrado.")
-    else:
-        for equipe in df_eq["equipe"]:
-            usuarios = df_users[df_users["equipe"] == equipe]
+    for equipe in df_eq["equipe"]:
+        usuarios = df_users[df_users["equipe"] == equipe]
 
-            if usuarios.empty:
-                continue
+        if usuarios.empty:
+            continue
 
-            with st.expander(f"{equipe} ({len(usuarios)})"):
-                for _, user in usuarios.iterrows():
-                    col1, col2, col3 = st.columns([4, 4, 1])
+        with st.expander(f"{equipe} ({len(usuarios)})"):
+            for _, user in usuarios.iterrows():
+                col1, col2, col3 = st.columns([4, 4, 1])
 
-                    with col1:
-                        st.write(user["nome"])
+                with col1:
+                    st.write(user["nome"])
 
-                    with col2:
-                        st.write(user["email"])
+                with col2:
+                    st.write(user["email"])
 
-                    with col3:
-                        if st.button("🗑️", key=f"del_user_{user['email']}"):
-                            df_users = df_users[df_users["email"] != user["email"]]
-                            df_users.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
-                            st.success(f"Usuário **{user['nome']}** removido.")
-                            st.rerun()
+                with col3:
+                    if st.button("🗑️", key=f"del_user_{user['email']}"):
+                        df_users = df_users[df_users["email"] != user["email"]]
+                        df_users.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
+                        st.success(f"Usuário **{user['nome']}** removido.")
+                        st.rerun()
 
 # ======================================================
 # TAB 1 – META CRUCIAL
@@ -208,35 +236,31 @@ with tabs[1]:
     df_users = carregar_usuarios()
 
     if df_eq.empty or df_users.empty:
-        st.warning("Cadastre equipes e usuários antes de criar metas.")
+        st.warning("Cadastre equipes e usuários antes.")
         st.stop()
 
     with st.form("form_meta"):
         equipe = st.selectbox("Equipe", df_eq["equipe"])
-        df_resp = df_users[df_users["equipe"] == equipe]
-
-        responsavel = st.selectbox("Responsável", df_resp["nome"])
+        responsavel = st.selectbox(
+            "Responsável",
+            df_users[df_users["equipe"] == equipe]["nome"]
+        )
         meta_crucial = st.text_area("Meta Crucial")
         prazo = st.text_input("Prazo")
         indicador = st.text_input("Indicador")
         meta_final = st.text_input("Meta Final")
-
         salvar_meta = st.form_submit_button("Salvar Meta")
 
     if salvar_meta:
         df = carregar_metas()
-
-        df = pd.concat(
-            [df, pd.DataFrame([{
-                "equipe": equipe,
-                "responsavel": responsavel,
-                "meta_crucial": meta_crucial,
-                "prazo": prazo,
-                "indicador": indicador,
-                "meta_final": meta_final
-            }])],
-            ignore_index=True
-        )
+        df = pd.concat([df, pd.DataFrame([{
+            "equipe": equipe,
+            "responsavel": responsavel,
+            "meta_crucial": meta_crucial,
+            "prazo": prazo,
+            "indicador": indicador,
+            "meta_final": meta_final
+        }])], ignore_index=True)
 
         df.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
         st.success("✅ Meta cadastrada com sucesso!")
@@ -252,11 +276,7 @@ with tabs[2]:
     if df_metas.empty:
         st.warning("Cadastre uma meta antes.")
     else:
-        responsavel = st.selectbox(
-            "Responsável",
-            df_metas["responsavel"].unique()
-        )
-
+        responsavel = st.selectbox("Responsável", df_metas["responsavel"].unique())
         metas = df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"].unique()
         meta_sel = st.selectbox("Meta Crucial", metas)
 
@@ -267,7 +287,6 @@ with tabs[2]:
 
         if salvar_medida:
             df_medidas = carregar_medidas()
-
             novas = [{
                 "responsavel": responsavel,
                 "meta_crucial": meta_sel,
