@@ -245,6 +245,63 @@ with tabs[3]:
                 for _, md in df_med[df_med["meta_crucial"] == m["meta_crucial"]].iterrows():
                     st.write(f"- {md['medida_direcao']} ({md['frequencia']})")
 
+        st.markdown("### 📅 Semana")
+
+sem_pass = semana_anterior()
+sem_atual = inicio_semana()
+
+# ---------- REGISTROS ----------
+reg_pass = df_sem[
+    (df_sem["responsavel"] == m["responsavel"]) &
+    (df_sem["meta_crucial"] == m["meta_crucial"]) &
+    (df_sem["semana_ref"] == str(sem_pass))
+]
+
+reg_atual = df_sem[
+    (df_sem["responsavel"] == m["responsavel"]) &
+    (df_sem["meta_crucial"] == m["meta_crucial"]) &
+    (df_sem["semana_ref"] == str(sem_atual))
+]
+
+# ---------- SEMANA PASSADA ----------
+st.markdown(f"**Semana passada ({sem_pass.strftime('%d/%m/%Y')})**")
+
+if reg_pass.empty:
+    st.info("Nenhum compromisso registrado na semana passada.")
+else:
+    st.markdown(f"🎯 **Meta da semana:** {reg_pass.iloc[0]['planejado']}")
+    st.success(f"Status: {reg_pass.iloc[0]['concluido']}")
+
+# ---------- PRÓXIMA SEMANA ----------
+st.markdown(f"**Próxima semana ({sem_atual.strftime('%d/%m/%Y')})**")
+
+planejado = st.text_area(
+    "Compromisso da próxima semana",
+    reg_atual.iloc[0]["planejado"] if not reg_atual.empty else "",
+    key=f"planejado_{idx}"
+)
+
+if st.button("Salvar compromisso", key=f"save_semana_{idx}"):
+    # remove registro existente da semana atual
+    df_sem = df_sem[
+        ~(
+            (df_sem["responsavel"] == m["responsavel"]) &
+            (df_sem["meta_crucial"] == m["meta_crucial"]) &
+            (df_sem["semana_ref"] == str(sem_atual))
+        )
+    ]
+
+    df_sem = pd.concat([df_sem, pd.DataFrame([{
+        "responsavel": m["responsavel"],
+        "meta_crucial": m["meta_crucial"],
+        "semana_ref": str(sem_atual),
+        "concluido": "",
+        "planejado": planejado
+    }])])
+
+    df_sem.to_csv(SEMANAS_PATH, index=False, encoding="utf-8-sig")
+    st.success("Compromisso da próxima semana salvo.")
+    st.rerun()
                 st.markdown("### 📅 Semana")
                 sem_pass = semana_anterior()
                 sem_atual = inicio_semana()
@@ -267,13 +324,8 @@ with tabs[3]:
                         }])])
                         df_sem.to_csv(SEMANAS_PATH, index=False)
                         st.rerun()
-                        else:
-                        resultado = reg.iloc[0]["concluido"]
-                    
-                        if resultado == "SIM":
-                            st.success("✅ Semana passada: SIM")
-                        else:
-                            st.error("❌ Semana passada: NÃO")
+                else:
+                    st.success(f"Semana passada: {reg.iloc[0]['concluido']}")
 
                 planejamento = st.text_area("Próxima semana – compromisso", key=f"p_{idx}")
                 if st.button("Salvar compromisso", key=f"save_{idx}"):
@@ -285,4 +337,3 @@ with tabs[3]:
                         "planejado": planejamento
                     }])])
                     df_sem.to_csv(SEMANAS_PATH, index=False)
-                    st.rerun()
