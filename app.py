@@ -268,9 +268,8 @@ with tabs[2]:
         } for m in novas.split("\n") if m.strip()])])
         df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
         st.rerun()
-
 # ======================================================
-# TAB 3 – VISÃO GERAL
+# TAB 3 – VISÃO GERAL (COM EDIÇÃO)
 # ======================================================
 with tabs[3]:
     st.subheader("🎯 Metas por Equipe")
@@ -278,20 +277,112 @@ with tabs[3]:
     df_metas = carregar_metas()
     df_med = carregar_medidas()
 
+    if "meta_edit_visao" not in st.session_state:
+        st.session_state.meta_edit_visao = None
+
+    if df_metas.empty:
+        st.info("Nenhuma meta cadastrada.")
+        st.stop()
+
     for equipe, grupo in df_metas.groupby("equipe"):
         st.markdown(f"## 🏷️ Equipe: {equipe}")
         st.divider()
 
-        for _, meta in grupo.iterrows():
+        for idx, meta in grupo.iterrows():
             with st.expander(
-                f"🎯 Abrir meta — Responsável: {meta['responsavel']}"
+                f"🎯 Abrir meta — Responsável: {meta['responsavel']}",
+                expanded=False
             ):
-                st.markdown(f"### {meta['meta_crucial']}")
-                st.markdown(f"**Indicador:** {meta['indicador']}")
-                st.markdown(f"**Meta Final:** {meta['meta_final']}")
-                st.markdown(f"**Prazo:** {meta['prazo']}")
+                # ===== CABEÇALHO =====
+                col_titulo, col_acoes = st.columns([4, 1])
 
-                st.markdown("### 🧭 Medidas de Direção")
-                medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
-                for _, m in medidas.iterrows():
-                    st.markdown(f"- {m['medida_direcao']} ({m['frequencia']})")
+                with col_titulo:
+                    st.markdown(f"### {meta['meta_crucial']}")
+                    st.caption(f"Responsável: {meta['responsavel']}")
+
+                with col_acoes:
+                    if st.button("✏️ Editar", key=f"edit_meta_visao_{idx}"):
+                        st.session_state.meta_edit_visao = idx
+
+                    if st.button("🗑️ Excluir", key=f"del_meta_visao_{idx}"):
+                        df_metas = df_metas.drop(idx)
+                        df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
+
+                        df_med = df_med[df_med["meta_crucial"] != meta["meta_crucial"]]
+                        df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
+
+                        st.success("Meta excluída.")
+                        st.rerun()
+
+                st.divider()
+
+                # ===== EDIÇÃO =====
+                if st.session_state.meta_edit_visao == idx:
+                    with st.form(f"form_edit_meta_visao_{idx}"):
+                        nova_meta = st.text_area(
+                            "Meta Crucial",
+                            value=meta["meta_crucial"],
+                            key=f"edit_txt_{idx}"
+                        )
+                        indicador = st.text_input(
+                            "Indicador",
+                            value=meta["indicador"],
+                            key=f"edit_ind_{idx}"
+                        )
+                        meta_final = st.text_input(
+                            "Meta Final",
+                            value=meta["meta_final"],
+                            key=f"edit_final_{idx}"
+                        )
+                        prazo = st.text_input(
+                            "Prazo",
+                            value=meta["prazo"],
+                            key=f"edit_prazo_{idx}"
+                        )
+
+                        col_salvar, col_cancelar = st.columns(2)
+                        salvar = col_salvar.form_submit_button("Salvar")
+                        cancelar = col_cancelar.form_submit_button("Cancelar")
+
+                    if salvar:
+                        df_metas.loc[idx, [
+                            "meta_crucial", "indicador", "meta_final", "prazo"
+                        ]] = [nova_meta, indicador, meta_final, prazo]
+
+                        df_metas.to_csv(
+                            METAS_PATH, index=False, encoding="utf-8-sig"
+                        )
+
+                        df_med.loc[
+                            df_med["meta_crucial"] == meta["meta_crucial"],
+                            "meta_crucial"
+                        ] = nova_meta
+                        df_med.to_csv(
+                            MEDIDAS_PATH, index=False, encoding="utf-8-sig"
+                        )
+
+                        st.session_state.meta_edit_visao = None
+                        st.success("Meta atualizada.")
+                        st.rerun()
+
+                    if cancelar:
+                        st.session_state.meta_edit_visao = None
+                        st.rerun()
+
+                # ===== VISUALIZAÇÃO =====
+                else:
+                    st.markdown(f"**Indicador:** {meta['indicador']}")
+                    st.markdown(f"**Meta Final:** {meta['meta_final']}")
+                    st.markdown(f"**Prazo:** {meta['prazo']}")
+
+                    st.markdown("### 🧭 Medidas de Direção")
+                    medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
+
+                    if medidas.empty:
+                        st.info("Nenhuma medida cadastrada.")
+                    else:
+                        for _, m in medidas.iterrows():
+                            st.markdown(
+                                f"- **{m['medida_direcao']}** "
+                                f"(_{m['frequencia']}_)"
+                            )
