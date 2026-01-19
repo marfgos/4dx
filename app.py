@@ -211,7 +211,9 @@ with tabs[3]:
             st.divider()
 
             for idx, meta in metas_eq.iterrows():
-                with st.expander("📌 Abrir meta"):
+                with st.expander(
+                f"🎯 Abrir meta — Responsável: {meta['responsavel']}"
+                ):
                     # ---------- CABEÇALHO DA META ----------
                     col_titulo, col_acoes = st.columns([4, 1])
 
