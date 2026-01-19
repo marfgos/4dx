@@ -304,14 +304,44 @@ with tabs[2]:
 with tabs[3]:
     st.subheader("Visão Geral")
 
+    # ---------- EQUIPES ----------
     st.markdown("### 👥 Equipes")
     st.dataframe(carregar_equipes(), use_container_width=True)
 
+    # ---------- USUÁRIOS ----------
     st.markdown("### 👤 Usuários")
     st.dataframe(carregar_usuarios(), use_container_width=True)
 
+    # ---------- METAS (COM DRILL DOWN) ----------
     st.markdown("### 🎯 Metas")
-    st.dataframe(carregar_metas(), use_container_width=True)
 
-    st.markdown("### 🧭 Medidas")
-    st.dataframe(carregar_medidas(), use_container_width=True)
+    df_metas = carregar_metas()
+    df_medidas = carregar_medidas()
+
+    if df_metas.empty:
+        st.info("Nenhuma meta cadastrada.")
+    else:
+        for _, meta in df_metas.iterrows():
+            titulo = f"{meta['meta_crucial']} — ({meta['responsavel']})"
+
+            with st.expander(titulo):
+                st.markdown(f"**Equipe:** {meta['equipe']}")
+                st.markdown(f"**Indicador:** {meta['indicador']}")
+                st.markdown(f"**Meta Final:** {meta['meta_final']}")
+                st.markdown(f"**Prazo:** {meta['prazo']}")
+
+                # ---- MEDIDAS DA META ----
+                medidas_meta = df_medidas[
+                    df_medidas["meta_crucial"] == meta["meta_crucial"]
+                ]
+
+                st.markdown("#### 🧭 Medidas de Direção")
+
+                if medidas_meta.empty:
+                    st.info("Nenhuma medida cadastrada para esta meta.")
+                else:
+                    for _, m in medidas_meta.iterrows():
+                        st.markdown(
+                            f"- **{m['medida_direcao']}** "
+                            f"(_{m['frequencia']}_)"
+                        )
