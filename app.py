@@ -4,6 +4,7 @@ import io
 
 from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
+from office365.sharepoint.files.file import File
 
 # ======================================================
 # 🔐 CREDENCIAIS SHAREPOINT (PADRÃO MOVIDESK)
@@ -31,10 +32,7 @@ def sp_context():
 
 def ler_csv_sp(caminho):
     ctx = sp_context()
-    response = ctx.web.get_file_by_server_relative_url(
-        caminho
-    ).open_binary(ctx)
-
+    response = File.open_binary(ctx, caminho)
     return pd.read_csv(io.BytesIO(response.content))
 
 def salvar_csv_sp(df, caminho):
