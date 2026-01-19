@@ -1,58 +1,57 @@
 import streamlit as st
 import pandas as pd
-import io
+from pathlib import Path
 
-from office365.sharepoint.client_context import ClientContext
-from office365.runtime.auth.client_credential import ClientCredential
-from office365.sharepoint.files.file import File
+# ===============================
+# Configuração da página
+# ===============================
+st.set_page_config(
+    page_title="4DX - Gestão de Metas",
+    layout="wide"
+)
 
-# ======================================================
-# 🔐 CREDENCIAIS AZURE AD (APP REGISTRATION)
-# ======================================================
+# ===============================
+# Paths (Cloud-safe)
+# ===============================
+BASE_PATH = Path("data")
+BASE_PATH.mkdir(exist_ok=True)
 
-TENANT_ID = "SEU_TENANT_ID"
-CLIENT_ID = "SEU_CLIENT_ID"
-CLIENT_SECRET = "SEU_CLIENT_SECRET"
+METAS_PATH = BASE_PATH / "metas_cruciais.csv"
+MEDIDAS_PATH = BASE_PATH / "medidas_direcao.csv"
 
-SHAREPOINT_SITE = "https://dellavolpecombr.sharepoint.com/sites/DellaVolpe"
+# ===============================
+# Inicialização dos arquivos
+# ===============================
+if not METAS_PATH.exists():
+    pd.DataFrame(columns=[
+        "equipe",
+        "responsavel",
+        "meta_crucial",
+        "prazo",
+        "indicador",
+        "meta_final"
+    ]).to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
 
-# ======================================================
-# 📁 CAMINHOS DOS ARQUIVOS NO SHAREPOINT
-# ======================================================
+if not MEDIDAS_PATH.exists():
+    pd.DataFrame(columns=[
+        "responsavel",
+        "meta_crucial",
+        "medida_direcao",
+        "frequencia"
+    ]).to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
 
-METAS_SP = "/sites/DellaVolpe/Documentos Compartilhados/metas_cruciais.csv"
-MEDIDAS_SP = "/sites/DellaVolpe/Documentos Compartilhados/medidas_direcao.csv"
+# ===============================
+# Funções de leitura
+# ===============================
+def carregar_metas():
+    return pd.read_csv(METAS_PATH)
 
-# ======================================================
-# 🔌 SHAREPOINT CONTEXT (CORRETO PRA CLOUD)
-# ======================================================
+def carregar_medidas():
+    return pd.read_csv(MEDIDAS_PATH)
 
-def sp_context():
-    return ClientContext(SHAREPOINT_SITE).with_credentials(
-        ClientCredential(CLIENT_ID, CLIENT_SECRET)
-    )
-
-def ler_csv_sp(caminho):
-    ctx = sp_context()
-    response = File.open_binary(ctx, caminho)
-    return pd.read_csv(io.BytesIO(response.content))
-
-def salvar_csv_sp(df, caminho):
-    ctx = sp_context()
-    buffer = io.StringIO()
-    df.to_csv(buffer, index=False, encoding="utf-8-sig")
-
-    ctx.web.get_file_by_server_relative_url(
-        caminho
-    ).save_binary(
-        buffer.getvalue().encode("utf-8-sig")
-    )
-
-# ======================================================
-# STREAMLIT APP
-# ======================================================
-
-st.set_page_config(page_title="4DX - Gestão de Metas", layout="wide")
+# ===============================
+# Título
+# ===============================
 st.title("🎯 4DX – Gestão de Metas Cruciais")
 
 tabs = st.tabs([
@@ -78,7 +77,7 @@ with tabs[0]:
         salvar = st.form_submit_button("Salvar")
 
     if salvar:
-        df_metas = ler_csv_sp(METAS_SP)
+        df = carregar_metas()
 
         nova = {
             "equipe": equipe,
@@ -89,12 +88,9 @@ with tabs[0]:
             "meta_final": meta_final
         }
 
-        df_metas = pd.concat(
-            [df_metas, pd.DataFrame([nova])],
-            ignore_index=True
-        )
+        df = pd.concat([df, pd.DataFrame([nova])], ignore_index=True)
+        df.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
 
-        salvar_csv_sp(df_metas, METAS_SP)
         st.success("✅ Meta cadastrada com sucesso!")
 
 # ======================================================
@@ -103,7 +99,7 @@ with tabs[0]:
 with tabs[1]:
     st.subheader("Cadastrar Medida de Direção")
 
-    df_metas = ler_csv_sp(METAS_SP)
+    df_metas = carregar_metas()
 
     if df_metas.empty:
         st.warning("Cadastre uma meta antes de adicionar medidas.")
@@ -133,28 +129,33 @@ with tabs[1]:
             salvar_medida = st.form_submit_button("Salvar")
 
         if salvar_medida:
-            df_medidas = ler_csv_sp(MEDIDAS_SP)
+            df_medidas = carregar_medidas()
 
+            # 🔥 CORREÇÃO: quebra em linhas
             medidas_lista = [
                 m.strip()
                 for m in medida.split("\n")
                 if m.strip()
             ]
 
-            novas = [{
-                "responsavel": responsavel,
-                "meta_crucial": meta_sel,
-                "medida_direcao": m,
-                "frequencia": frequencia
-            } for m in medidas_lista]
+            novas_linhas = []
+
+            for m in medidas_lista:
+                novas_linhas.append({
+                    "responsavel": responsavel,
+                    "meta_crucial": meta_sel,
+                    "medida_direcao": m,
+                    "frequencia": frequencia
+                })
 
             df_medidas = pd.concat(
-                [df_medidas, pd.DataFrame(novas)],
+                [df_medidas, pd.DataFrame(novas_linhas)],
                 ignore_index=True
             )
 
-            salvar_csv_sp(df_medidas, MEDIDAS_SP)
-            st.success(f"✅ {len(novas)} medidas cadastradas com sucesso!")
+            df_medidas.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
+
+            st.success(f"✅ {len(novas_linhas)} medidas cadastradas com sucesso!")
 
 # ======================================================
 # TAB 3 – VISÃO GERAL
@@ -163,7 +164,7 @@ with tabs[2]:
     st.subheader("Visão Geral")
 
     st.markdown("### 🎯 Metas Cruciais")
-    st.dataframe(ler_csv_sp(METAS_SP), use_container_width=True)
+    st.dataframe(carregar_metas(), use_container_width=True)
 
     st.markdown("### 🧭 Medidas de Direção")
-    st.dataframe(ler_csv_sp(MEDIDAS_SP), use_container_width=True)
+    st.dataframe(carregar_medidas(), use_container_width=True)
