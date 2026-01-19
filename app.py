@@ -66,6 +66,17 @@ def carregar_medidas():
     return pd.read_csv(MEDIDAS_PATH)
 
 # ===============================
+# Estados globais
+# ===============================
+for k in [
+    "usuario_salvo_ok",
+    "meta_salva_ok",
+    "medida_edit"
+]:
+    if k not in st.session_state:
+        st.session_state[k] = None
+
+# ===============================
 # Título
 # ===============================
 st.title("🎯 4DX – Gestão de Metas")
@@ -84,29 +95,33 @@ with tabs[0]:
     st.subheader("Cadastro de Equipes")
 
     with st.form("form_equipe"):
-        nome_equipe = st.text_input("Nome da Equipe")
-        salvar = st.form_submit_button("Salvar Equipe")
+        nome_equipe = st.text_input("Nome da Equipe", key="nome_equipe")
+        salvar_eq = st.form_submit_button("Salvar Equipe")
 
-    if salvar and nome_equipe:
+    if salvar_eq and nome_equipe:
         df = carregar_equipes()
         if nome_equipe not in df["equipe"].values:
             df = pd.concat([df, pd.DataFrame([{"equipe": nome_equipe}])])
             df.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
-            st.success("Equipe cadastrada.")
+            st.success("✅ Equipe cadastrada.")
             st.rerun()
 
     st.divider()
     st.subheader("Cadastro de Usuários")
 
+    if st.session_state.usuario_salvo_ok:
+        st.success("✅ Usuário cadastrado com sucesso.")
+        st.session_state.usuario_salvo_ok = False
+
     df_eq = carregar_equipes()
     if not df_eq.empty:
         with st.form("form_user"):
-            nome = st.text_input("Nome")
-            email = st.text_input("Email")
-            equipe = st.selectbox("Equipe", df_eq["equipe"])
+            nome = st.text_input("Nome", key="user_nome")
+            email = st.text_input("Email", key="user_email")
+            equipe = st.selectbox("Equipe", df_eq["equipe"], key="user_equipe")
             salvar_user = st.form_submit_button("Salvar Usuário")
 
-        if salvar_user:
+        if salvar_user and nome and email:
             df_u = carregar_usuarios()
             if email not in df_u["email"].values:
                 df_u = pd.concat([df_u, pd.DataFrame([{
@@ -115,30 +130,29 @@ with tabs[0]:
                     "equipe": equipe
                 }])])
                 df_u.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
-                st.success("Usuário cadastrado.")
+                st.session_state.usuario_salvo_ok = True
                 st.rerun()
 
 # ======================================================
-# TAB 1 – META CRUCIAL (AUTO + SUCESSO)
+# TAB 1 – META CRUCIAL
 # ======================================================
 with tabs[1]:
     st.subheader("Cadastrar Meta Crucial")
-
-    df_eq = carregar_equipes()
-    df_u = carregar_usuarios()
-    df_metas = carregar_metas()
-
-    if "meta_salva_ok" not in st.session_state:
-        st.session_state.meta_salva_ok = False
 
     if st.session_state.meta_salva_ok:
         st.success("✅ Meta salva com sucesso.")
         st.session_state.meta_salva_ok = False
 
-    equipe = st.selectbox("Equipe", df_eq["equipe"])
+    df_eq = carregar_equipes()
+    df_u = carregar_usuarios()
+    df_metas = carregar_metas()
+
+    equipe = st.selectbox("Equipe", df_eq["equipe"], key="meta_equipe")
+
     responsavel = st.selectbox(
         "Responsável",
-        df_u[df_u["equipe"] == equipe]["nome"]
+        df_u[df_u["equipe"] == equipe]["nome"],
+        key="resp_meta"
     )
 
     existente = df_metas[df_metas["responsavel"] == responsavel]
@@ -146,19 +160,23 @@ with tabs[1]:
     with st.form("form_meta"):
         meta = st.text_area(
             "Meta Crucial",
-            value=existente.iloc[0]["meta_crucial"] if not existente.empty else ""
+            value=existente.iloc[0]["meta_crucial"] if not existente.empty else "",
+            key="meta_txt"
         )
         indicador = st.text_input(
             "Indicador",
-            value=existente.iloc[0]["indicador"] if not existente.empty else ""
+            value=existente.iloc[0]["indicador"] if not existente.empty else "",
+            key="meta_ind"
         )
         meta_final = st.text_input(
             "Meta Final",
-            value=existente.iloc[0]["meta_final"] if not existente.empty else ""
+            value=existente.iloc[0]["meta_final"] if not existente.empty else "",
+            key="meta_final"
         )
         prazo = st.text_input(
             "Prazo",
-            value=existente.iloc[0]["prazo"] if not existente.empty else ""
+            value=existente.iloc[0]["prazo"] if not existente.empty else "",
+            key="meta_prazo"
         )
         salvar = st.form_submit_button("Salvar Meta")
 
@@ -185,13 +203,18 @@ with tabs[2]:
     df_metas = carregar_metas()
     df_med = carregar_medidas()
 
-    responsavel = st.selectbox("Responsável", df_metas["responsavel"].unique())
-    meta_sel = st.selectbox(
-        "Meta",
-        df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"]
+    responsavel = st.selectbox(
+        "Responsável",
+        df_metas["responsavel"].unique(),
+        key="resp_medida"
     )
 
-    st.markdown("### 🧭 Medidas já cadastradas")
+    meta_sel = st.selectbox(
+        "Meta",
+        df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"],
+        key="meta_medida"
+    )
+
     medidas = df_med[
         (df_med["responsavel"] == responsavel) &
         (df_med["meta_crucial"] == meta_sel)
@@ -209,13 +232,14 @@ with tabs[2]:
             df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
             st.rerun()
 
-        if st.session_state.get("medida_edit") == idx:
-            with st.form(f"form_edit_med_{idx}"):
-                txt = st.text_input("Medida", m["medida_direcao"])
+        if st.session_state.medida_edit == idx:
+            with st.form(f"edit_form_{idx}"):
+                txt = st.text_input("Medida", m["medida_direcao"], key=f"txt_{idx}")
                 freq = st.selectbox(
                     "Frequência",
                     ["Diária", "Semanal", "Mensal", "Projeto"],
-                    index=["Diária", "Semanal", "Mensal", "Projeto"].index(m["frequencia"])
+                    index=["Diária", "Semanal", "Mensal", "Projeto"].index(m["frequencia"]),
+                    key=f"freq_{idx}"
                 )
                 salvar = st.form_submit_button("Salvar")
 
@@ -226,9 +250,13 @@ with tabs[2]:
                 st.rerun()
 
     st.divider()
-    with st.form("form_medida"):
-        novas = st.text_area("Adicionar novas medidas (1 por linha)")
-        freq = st.selectbox("Frequência", ["Diária", "Semanal", "Mensal", "Projeto"])
+    with st.form("nova_medida"):
+        novas = st.text_area("Adicionar novas medidas (1 por linha)", key="novas_medidas")
+        freq = st.selectbox(
+            "Frequência",
+            ["Diária", "Semanal", "Mensal", "Projeto"],
+            key="freq_nova"
+        )
         salvar = st.form_submit_button("Salvar Medidas")
 
     if salvar:
@@ -250,15 +278,14 @@ with tabs[3]:
     df_metas = carregar_metas()
     df_med = carregar_medidas()
 
-    if "meta_edit" not in st.session_state:
-        st.session_state.meta_edit = None
-
     for equipe, grupo in df_metas.groupby("equipe"):
         st.markdown(f"## 🏷️ Equipe: {equipe}")
         st.divider()
 
-        for idx, meta in grupo.iterrows():
-            with st.expander(f"🎯 Abrir meta — Responsável: {meta['responsavel']}"):
+        for _, meta in grupo.iterrows():
+            with st.expander(
+                f"🎯 Abrir meta — Responsável: {meta['responsavel']}"
+            ):
                 st.markdown(f"### {meta['meta_crucial']}")
                 st.markdown(f"**Indicador:** {meta['indicador']}")
                 st.markdown(f"**Meta Final:** {meta['meta_final']}")
@@ -266,6 +293,5 @@ with tabs[3]:
 
                 st.markdown("### 🧭 Medidas de Direção")
                 medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
-
                 for _, m in medidas.iterrows():
                     st.markdown(f"- {m['medida_direcao']} ({m['frequencia']})")
