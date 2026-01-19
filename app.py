@@ -3,31 +3,33 @@ import pandas as pd
 import io
 
 from office365.sharepoint.client_context import ClientContext
-from office365.runtime.auth.user_credential import UserCredential
+from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.files.file import File
 
 # ======================================================
-# 🔐 CREDENCIAIS SHAREPOINT (PADRÃO MOVIDESK)
+# 🔐 CREDENCIAIS AZURE AD (APP REGISTRATION)
 # ======================================================
+
+TENANT_ID = "SEU_TENANT_ID"
+CLIENT_ID = "SEU_CLIENT_ID"
+CLIENT_SECRET = "SEU_CLIENT_SECRET"
 
 SHAREPOINT_SITE = "https://dellavolpecombr.sharepoint.com/sites/DellaVolpe"
-SHAREPOINT_USERNAME = "marcos.silva@dellavolpe.com.br"
-SHAREPOINT_PASSWORD = "38213824rR##"
 
 # ======================================================
-# 📁 CAMINHOS DOS ARQUIVOS (SEM PASTA)
+# 📁 CAMINHOS DOS ARQUIVOS NO SHAREPOINT
 # ======================================================
 
 METAS_SP = "/sites/DellaVolpe/Documentos Compartilhados/metas_cruciais.csv"
 MEDIDAS_SP = "/sites/DellaVolpe/Documentos Compartilhados/medidas_direcao.csv"
 
 # ======================================================
-# 🔌 SHAREPOINT HELPERS
+# 🔌 SHAREPOINT CONTEXT (CORRETO PRA CLOUD)
 # ======================================================
 
 def sp_context():
     return ClientContext(SHAREPOINT_SITE).with_credentials(
-        UserCredential(SHAREPOINT_USERNAME, SHAREPOINT_PASSWORD)
+        ClientCredential(CLIENT_ID, CLIENT_SECRET)
     )
 
 def ler_csv_sp(caminho):
