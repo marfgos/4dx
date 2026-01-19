@@ -267,8 +267,13 @@ with tabs[3]:
                         }])])
                         df_sem.to_csv(SEMANAS_PATH, index=False)
                         st.rerun()
-                else:
-                    st.success(f"Semana passada: {reg.iloc[0]['concluido']}")
+                        else:
+                        resultado = reg.iloc[0]["concluido"]
+                    
+                        if resultado == "SIM":
+                            st.success("✅ Semana passada: SIM")
+                        else:
+                            st.error("❌ Semana passada: NÃO")
 
                 planejamento = st.text_area("Próxima semana – compromisso", key=f"p_{idx}")
                 if st.button("Salvar compromisso", key=f"save_{idx}"):
