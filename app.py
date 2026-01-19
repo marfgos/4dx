@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # ===============================
 # Configuração da página
@@ -20,6 +21,7 @@ EQUIPES_PATH = BASE_PATH / "equipes.csv"
 USUARIOS_PATH = BASE_PATH / "usuarios.csv"
 METAS_PATH = BASE_PATH / "metas_cruciais.csv"
 MEDIDAS_PATH = BASE_PATH / "medidas_direcao.csv"
+SEMANAS_PATH = BASE_PATH / "semanas.csv"
 
 # ===============================
 # Inicialização dos arquivos
@@ -50,6 +52,15 @@ if not MEDIDAS_PATH.exists():
         "frequencia"
     ]).to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
 
+if not SEMANAS_PATH.exists():
+    pd.DataFrame(columns=[
+        "responsavel",
+        "meta_crucial",
+        "semana_ref",
+        "feito",
+        "planejado"
+    ]).to_csv(SEMANAS_PATH, index=False, encoding="utf-8-sig")
+
 # ===============================
 # Funções
 # ===============================
@@ -65,13 +76,26 @@ def carregar_metas():
 def carregar_medidas():
     return pd.read_csv(MEDIDAS_PATH)
 
+def carregar_semanas():
+    return pd.read_csv(SEMANAS_PATH)
+
+def inicio_semana(data=None):
+    if not data:
+        data = datetime.today()
+    return (data - timedelta(days=data.weekday()))
+
+
+def semana_anterior():
+    return inicio_semana() - timedelta(days=7)
+
 # ===============================
 # Estados globais
 # ===============================
 for k in [
     "usuario_salvo_ok",
     "meta_salva_ok",
-    "medida_edit"
+    "medida_edit",
+    "meta_edit_visao"
 ]:
     if k not in st.session_state:
         st.session_state[k] = None
@@ -95,7 +119,7 @@ with tabs[0]:
     st.subheader("Cadastro de Equipes")
 
     with st.form("form_equipe"):
-        nome_equipe = st.text_input("Nome da Equipe", key="nome_equipe")
+        nome_equipe = st.text_input("Nome da Equipe")
         salvar_eq = st.form_submit_button("Salvar Equipe")
 
     if salvar_eq and nome_equipe:
@@ -116,9 +140,9 @@ with tabs[0]:
     df_eq = carregar_equipes()
     if not df_eq.empty:
         with st.form("form_user"):
-            nome = st.text_input("Nome", key="user_nome")
-            email = st.text_input("Email", key="user_email")
-            equipe = st.selectbox("Equipe", df_eq["equipe"], key="user_equipe")
+            nome = st.text_input("Nome")
+            email = st.text_input("Email")
+            equipe = st.selectbox("Equipe", df_eq["equipe"])
             salvar_user = st.form_submit_button("Salvar Usuário")
 
         if salvar_user and nome and email:
@@ -147,12 +171,10 @@ with tabs[1]:
     df_u = carregar_usuarios()
     df_metas = carregar_metas()
 
-    equipe = st.selectbox("Equipe", df_eq["equipe"], key="meta_equipe")
-
+    equipe = st.selectbox("Equipe", df_eq["equipe"])
     responsavel = st.selectbox(
         "Responsável",
-        df_u[df_u["equipe"] == equipe]["nome"],
-        key="resp_meta"
+        df_u[df_u["equipe"] == equipe]["nome"]
     )
 
     existente = df_metas[df_metas["responsavel"] == responsavel]
@@ -160,23 +182,19 @@ with tabs[1]:
     with st.form("form_meta"):
         meta = st.text_area(
             "Meta Crucial",
-            value=existente.iloc[0]["meta_crucial"] if not existente.empty else "",
-            key="meta_txt"
+            value=existente.iloc[0]["meta_crucial"] if not existente.empty else ""
         )
         indicador = st.text_input(
             "Indicador",
-            value=existente.iloc[0]["indicador"] if not existente.empty else "",
-            key="meta_ind"
+            value=existente.iloc[0]["indicador"] if not existente.empty else ""
         )
         meta_final = st.text_input(
             "Meta Final",
-            value=existente.iloc[0]["meta_final"] if not existente.empty else "",
-            key="meta_final"
+            value=existente.iloc[0]["meta_final"] if not existente.empty else ""
         )
         prazo = st.text_input(
             "Prazo",
-            value=existente.iloc[0]["prazo"] if not existente.empty else "",
-            key="meta_prazo"
+            value=existente.iloc[0]["prazo"] if not existente.empty else ""
         )
         salvar = st.form_submit_button("Salvar Meta")
 
@@ -195,90 +213,14 @@ with tabs[1]:
         st.rerun()
 
 # ======================================================
-# TAB 2 – MEDIDA DE DIREÇÃO
-# ======================================================
-with tabs[2]:
-    st.subheader("Cadastrar Medida de Direção")
-
-    df_metas = carregar_metas()
-    df_med = carregar_medidas()
-
-    responsavel = st.selectbox(
-        "Responsável",
-        df_metas["responsavel"].unique(),
-        key="resp_medida"
-    )
-
-    meta_sel = st.selectbox(
-        "Meta",
-        df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"],
-        key="meta_medida"
-    )
-
-    medidas = df_med[
-        (df_med["responsavel"] == responsavel) &
-        (df_med["meta_crucial"] == meta_sel)
-    ]
-
-    for idx, m in medidas.iterrows():
-        col1, col2, col3 = st.columns([6, 1, 1])
-        col1.write(f"{m['medida_direcao']} ({m['frequencia']})")
-
-        if col2.button("✏️", key=f"edit_med_{idx}"):
-            st.session_state.medida_edit = idx
-
-        if col3.button("🗑️", key=f"del_med_{idx}"):
-            df_med = df_med.drop(idx)
-            df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
-            st.rerun()
-
-        if st.session_state.medida_edit == idx:
-            with st.form(f"edit_form_{idx}"):
-                txt = st.text_input("Medida", m["medida_direcao"], key=f"txt_{idx}")
-                freq = st.selectbox(
-                    "Frequência",
-                    ["Diária", "Semanal", "Mensal", "Projeto"],
-                    index=["Diária", "Semanal", "Mensal", "Projeto"].index(m["frequencia"]),
-                    key=f"freq_{idx}"
-                )
-                salvar = st.form_submit_button("Salvar")
-
-            if salvar:
-                df_med.loc[idx, ["medida_direcao", "frequencia"]] = [txt, freq]
-                df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
-                st.session_state.medida_edit = None
-                st.rerun()
-
-    st.divider()
-    with st.form("nova_medida"):
-        novas = st.text_area("Adicionar novas medidas (1 por linha)", key="novas_medidas")
-        freq = st.selectbox(
-            "Frequência",
-            ["Diária", "Semanal", "Mensal", "Projeto"],
-            key="freq_nova"
-        )
-        salvar = st.form_submit_button("Salvar Medidas")
-
-    if salvar:
-        df_med = pd.concat([df_med, pd.DataFrame([{
-            "responsavel": responsavel,
-            "meta_crucial": meta_sel,
-            "medida_direcao": m.strip(),
-            "frequencia": freq
-        } for m in novas.split("\n") if m.strip()])])
-        df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
-        st.rerun()
-# ======================================================
-# TAB 3 – VISÃO GERAL (COM EDIÇÃO)
+# TAB 3 – VISÃO GERAL (COM SEMANAS)
 # ======================================================
 with tabs[3]:
     st.subheader("🎯 Metas por Equipe")
 
     df_metas = carregar_metas()
     df_med = carregar_medidas()
-
-    if "meta_edit_visao" not in st.session_state:
-        st.session_state.meta_edit_visao = None
+    df_sem = carregar_semanas()
 
     if df_metas.empty:
         st.info("Nenhuma meta cadastrada.")
@@ -293,96 +235,70 @@ with tabs[3]:
                 f"🎯 Abrir meta — Responsável: {meta['responsavel']}",
                 expanded=False
             ):
-                # ===== CABEÇALHO =====
-                col_titulo, col_acoes = st.columns([4, 1])
+                st.markdown(f"### {meta['meta_crucial']}")
+                st.markdown(f"**Indicador:** {meta['indicador']}")
+                st.markdown(f"**Meta Final:** {meta['meta_final']}")
+                st.markdown(f"**Prazo:** {meta['prazo']}")
 
-                with col_titulo:
-                    st.markdown(f"### {meta['meta_crucial']}")
-                    st.caption(f"Responsável: {meta['responsavel']}")
+                st.markdown("### 🧭 Medidas de Direção")
+                medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
+                if medidas.empty:
+                    st.info("Nenhuma medida cadastrada.")
+                else:
+                    for _, m in medidas.iterrows():
+                        st.markdown(f"- {m['medida_direcao']} ({m['frequencia']})")
 
-                with col_acoes:
-                    if st.button("✏️ Editar", key=f"edit_meta_visao_{idx}"):
-                        st.session_state.meta_edit_visao = idx
+                # ===============================
+                # 📅 CONTROLE SEMANAL
+                # ===============================
+                semana_passada = semana_anterior()
+                semana_atual = inicio_semana()
 
-                    if st.button("🗑️ Excluir", key=f"del_meta_visao_{idx}"):
-                        df_metas = df_metas.drop(idx)
-                        df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
+                reg_passado = df_sem[
+                    (df_sem["responsavel"] == meta["responsavel"]) &
+                    (df_sem["meta_crucial"] == meta["meta_crucial"]) &
+                    (df_sem["semana_ref"] == str(semana_passada.date()))
+                ]
 
-                        df_med = df_med[df_med["meta_crucial"] != meta["meta_crucial"]]
-                        df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
-
-                        st.success("Meta excluída.")
-                        st.rerun()
+                reg_atual = df_sem[
+                    (df_sem["responsavel"] == meta["responsavel"]) &
+                    (df_sem["meta_crucial"] == meta["meta_crucial"]) &
+                    (df_sem["semana_ref"] == str(semana_atual.date()))
+                ]
 
                 st.divider()
+                st.markdown("## 📅 Semana")
 
-                # ===== EDIÇÃO =====
-                if st.session_state.meta_edit_visao == idx:
-                    with st.form(f"form_edit_meta_visao_{idx}"):
-                        nova_meta = st.text_area(
-                            "Meta Crucial",
-                            value=meta["meta_crucial"],
-                            key=f"edit_txt_{idx}"
-                        )
-                        indicador = st.text_input(
-                            "Indicador",
-                            value=meta["indicador"],
-                            key=f"edit_ind_{idx}"
-                        )
-                        meta_final = st.text_input(
-                            "Meta Final",
-                            value=meta["meta_final"],
-                            key=f"edit_final_{idx}"
-                        )
-                        prazo = st.text_input(
-                            "Prazo",
-                            value=meta["prazo"],
-                            key=f"edit_prazo_{idx}"
-                        )
-
-                        col_salvar, col_cancelar = st.columns(2)
-                        salvar = col_salvar.form_submit_button("Salvar")
-                        cancelar = col_cancelar.form_submit_button("Cancelar")
-
-                    if salvar:
-                        df_metas.loc[idx, [
-                            "meta_crucial", "indicador", "meta_final", "prazo"
-                        ]] = [nova_meta, indicador, meta_final, prazo]
-
-                        df_metas.to_csv(
-                            METAS_PATH, index=False, encoding="utf-8-sig"
-                        )
-
-                        df_med.loc[
-                            df_med["meta_crucial"] == meta["meta_crucial"],
-                            "meta_crucial"
-                        ] = nova_meta
-                        df_med.to_csv(
-                            MEDIDAS_PATH, index=False, encoding="utf-8-sig"
-                        )
-
-                        st.session_state.meta_edit_visao = None
-                        st.success("Meta atualizada.")
-                        st.rerun()
-
-                    if cancelar:
-                        st.session_state.meta_edit_visao = None
-                        st.rerun()
-
-                # ===== VISUALIZAÇÃO =====
+                st.markdown(f"**Semana passada ({semana_passada.strftime('%d/%m/%Y')})**")
+                if reg_passado.empty:
+                    st.info("Nenhum registro.")
                 else:
-                    st.markdown(f"**Indicador:** {meta['indicador']}")
-                    st.markdown(f"**Meta Final:** {meta['meta_final']}")
-                    st.markdown(f"**Prazo:** {meta['prazo']}")
+                    st.success(reg_passado.iloc[0]["feito"])
 
-                    st.markdown("### 🧭 Medidas de Direção")
-                    medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
+                st.markdown(f"**Próxima semana ({semana_atual.strftime('%d/%m/%Y')})**")
+                planejado = st.text_area(
+                    "O que será feito?",
+                    value=reg_atual.iloc[0]["planejado"] if not reg_atual.empty else "",
+                    key=f"semana_{idx}"
+                )
 
-                    if medidas.empty:
-                        st.info("Nenhuma medida cadastrada.")
-                    else:
-                        for _, m in medidas.iterrows():
-                            st.markdown(
-                                f"- **{m['medida_direcao']}** "
-                                f"(_{m['frequencia']}_)"
-                            )
+                if st.button("Salvar compromisso", key=f"save_sem_{idx}"):
+                    df_sem = df_sem[
+                        ~(
+                            (df_sem["responsavel"] == meta["responsavel"]) &
+                            (df_sem["meta_crucial"] == meta["meta_crucial"]) &
+                            (df_sem["semana_ref"] == str(semana_atual.date()))
+                        )
+                    ]
+
+                    df_sem = pd.concat([df_sem, pd.DataFrame([{
+                        "responsavel": meta["responsavel"],
+                        "meta_crucial": meta["meta_crucial"],
+                        "semana_ref": str(semana_atual.date()),
+                        "feito": planejado,
+                        "planejado": planejado
+                    }])])
+
+                    df_sem.to_csv(SEMANAS_PATH, index=False, encoding="utf-8-sig")
+                    st.success("Compromisso semanal salvo.")
+                    st.rerun()
