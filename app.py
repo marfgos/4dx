@@ -85,15 +85,15 @@ with tabs[0]:
 
     with st.form("form_equipe"):
         nome_equipe = st.text_input("Nome da Equipe")
-        salvar_eq = st.form_submit_button("Salvar Equipe")
+        salvar = st.form_submit_button("Salvar Equipe")
 
-    if salvar_eq and nome_equipe:
-        df_eq = carregar_equipes()
-        if nome_equipe in df_eq["equipe"].values:
+    if salvar and nome_equipe:
+        df = carregar_equipes()
+        if nome_equipe in df["equipe"].values:
             st.warning("Equipe já existe.")
         else:
-            df_eq = pd.concat([df_eq, pd.DataFrame([{"equipe": nome_equipe}])])
-            df_eq.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
+            df = pd.concat([df, pd.DataFrame([{"equipe": nome_equipe}])])
+            df.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
             st.success("Equipe cadastrada.")
             st.rerun()
 
@@ -106,9 +106,9 @@ with tabs[0]:
             nome = st.text_input("Nome")
             email = st.text_input("Email")
             equipe = st.selectbox("Equipe", df_eq["equipe"])
-            salvar = st.form_submit_button("Salvar Usuário")
+            salvar_user = st.form_submit_button("Salvar Usuário")
 
-        if salvar:
+        if salvar_user:
             df_u = carregar_usuarios()
             if email in df_u["email"].values:
                 st.warning("Email já cadastrado.")
@@ -120,29 +120,6 @@ with tabs[0]:
                 }])])
                 df_u.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
                 st.success("Usuário cadastrado.")
-                st.rerun()
-
-    st.divider()
-    st.subheader("✏️ Renomear Equipe")
-
-    if not df_eq.empty:
-        equipe_atual = st.selectbox("Equipe", df_eq["equipe"])
-        novo_nome = st.text_input("Novo nome")
-
-        if st.button("Salvar novo nome"):
-            if novo_nome and novo_nome not in df_eq["equipe"].values:
-                df_eq.loc[df_eq["equipe"] == equipe_atual, "equipe"] = novo_nome
-                df_eq.to_csv(EQUIPES_PATH, index=False, encoding="utf-8-sig")
-
-                df_u = carregar_usuarios()
-                df_u.loc[df_u["equipe"] == equipe_atual, "equipe"] = novo_nome
-                df_u.to_csv(USUARIOS_PATH, index=False, encoding="utf-8-sig")
-
-                df_m = carregar_metas()
-                df_m.loc[df_m["equipe"] == equipe_atual, "equipe"] = novo_nome
-                df_m.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
-
-                st.success("Equipe renomeada.")
                 st.rerun()
 
 # ======================================================
@@ -171,8 +148,8 @@ with tabs[1]:
         salvar = st.form_submit_button("Salvar Meta")
 
     if salvar:
-        df_m = carregar_metas()
-        df_m = pd.concat([df_m, pd.DataFrame([{
+        df = carregar_metas()
+        df = pd.concat([df, pd.DataFrame([{
             "equipe": equipe,
             "responsavel": responsavel,
             "meta_crucial": meta,
@@ -180,7 +157,7 @@ with tabs[1]:
             "meta_final": meta_final,
             "prazo": prazo
         }])])
-        df_m.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
+        df.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
         st.success("Meta cadastrada.")
 
 # ======================================================
@@ -197,7 +174,7 @@ with tabs[2]:
         meta_sel = st.selectbox("Meta", metas)
 
         with st.form("form_medida"):
-            medida = st.text_area("Medida (1 por linha)")
+            medidas = st.text_area("Medidas (uma por linha)")
             freq = st.selectbox("Frequência", ["Diária", "Semanal", "Mensal", "Projeto"])
             salvar = st.form_submit_button("Salvar")
 
@@ -208,7 +185,7 @@ with tabs[2]:
                 "meta_crucial": meta_sel,
                 "medida_direcao": m.strip(),
                 "frequencia": freq
-            } for m in medida.split("\n") if m.strip()]
+            } for m in medidas.split("\n") if m.strip()]
 
             df_med = pd.concat([df_med, pd.DataFrame(novas)])
             df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
@@ -223,17 +200,20 @@ with tabs[3]:
     df_metas = carregar_metas()
     df_med = carregar_medidas()
 
+    if "meta_em_edicao" not in st.session_state:
+        st.session_state.meta_em_edicao = None
+
     for idx, meta in df_metas.iterrows():
-        key = f"meta_{idx}"
         with st.expander(f"{meta['meta_crucial']} — ({meta['responsavel']})"):
+
             col1, col2 = st.columns(2)
 
             with col1:
-                if st.button("✏️ Editar", key=f"edit_{key}"):
-                    st.session_state[f"edit_{key}"] = True
+                if st.button("✏️ Editar", key=f"edit_{idx}"):
+                    st.session_state.meta_em_edicao = idx
 
             with col2:
-                if st.button("🗑️ Excluir", key=f"del_{key}"):
+                if st.button("🗑️ Excluir", key=f"del_{idx}"):
                     df_metas = df_metas.drop(idx)
                     df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
 
@@ -243,17 +223,20 @@ with tabs[3]:
                     st.success("Meta excluída.")
                     st.rerun()
 
-            if st.session_state.get(f"edit_{key}", False):
-                with st.form(f"form_edit_{key}"):
-                    nova_meta = st.text_area("Meta", meta["meta_crucial"])
+            # ---------- EDIÇÃO ----------
+            if st.session_state.meta_em_edicao == idx:
+                with st.form(f"form_edit_{idx}"):
+                    nova_meta = st.text_area("Meta Crucial", meta["meta_crucial"])
                     indicador = st.text_input("Indicador", meta["indicador"])
                     meta_final = st.text_input("Meta Final", meta["meta_final"])
                     prazo = st.text_input("Prazo", meta["prazo"])
-                    salvar = st.form_submit_button("Salvar alterações")
+                    salvar = st.form_submit_button("Salvar")
+                    cancelar = st.form_submit_button("Cancelar")
 
                 if salvar:
-                    df_metas.loc[idx, ["meta_crucial","indicador","meta_final","prazo"]] = \
-                        [nova_meta, indicador, meta_final, prazo]
+                    df_metas.loc[idx, ["meta_crucial","indicador","meta_final","prazo"]] = [
+                        nova_meta, indicador, meta_final, prazo
+                    ]
                     df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
 
                     df_med.loc[
@@ -262,10 +245,15 @@ with tabs[3]:
                     ] = nova_meta
                     df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
 
-                    st.session_state[f"edit_{key}"] = False
+                    st.session_state.meta_em_edicao = None
                     st.success("Meta atualizada.")
                     st.rerun()
 
+                if cancelar:
+                    st.session_state.meta_em_edicao = None
+                    st.rerun()
+
+            # ---------- VISUALIZAÇÃO ----------
             else:
                 st.markdown(f"**Indicador:** {meta['indicador']}")
                 st.markdown(f"**Meta Final:** {meta['meta_final']}")
