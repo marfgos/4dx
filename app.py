@@ -123,73 +123,119 @@ with tabs[0]:
                 st.rerun()
 
 # ======================================================
-# TAB 1 – META CRUCIAL
+# TAB 1 – META CRUCIAL (COM AUTO-PREENCHIMENTO)
 # ======================================================
 with tabs[1]:
     st.subheader("Cadastrar Meta Crucial")
 
     df_eq = carregar_equipes()
     df_u = carregar_usuarios()
+    df_metas = carregar_metas()
 
     if df_eq.empty or df_u.empty:
         st.warning("Cadastre equipes e usuários antes.")
         st.stop()
 
+    equipe = st.selectbox("Equipe", df_eq["equipe"])
+    responsavel = st.selectbox(
+        "Responsável",
+        df_u[df_u["equipe"] == equipe]["nome"]
+    )
+
+    # 🔍 busca meta existente do responsável
+    meta_existente = df_metas[df_metas["responsavel"] == responsavel]
+
+    meta_default = meta_existente.iloc[0]["meta_crucial"] if not meta_existente.empty else ""
+    indicador_default = meta_existente.iloc[0]["indicador"] if not meta_existente.empty else ""
+    meta_final_default = meta_existente.iloc[0]["meta_final"] if not meta_existente.empty else ""
+    prazo_default = meta_existente.iloc[0]["prazo"] if not meta_existente.empty else ""
+
     with st.form("form_meta"):
-        equipe = st.selectbox("Equipe", df_eq["equipe"])
-        responsavel = st.selectbox(
-            "Responsável",
-            df_u[df_u["equipe"] == equipe]["nome"]
-        )
-        meta = st.text_area("Meta Crucial")
-        indicador = st.text_input("Indicador")
-        meta_final = st.text_input("Meta Final")
-        prazo = st.text_input("Prazo")
+        meta = st.text_area("Meta Crucial", value=meta_default)
+        indicador = st.text_input("Indicador", value=indicador_default)
+        meta_final = st.text_input("Meta Final", value=meta_final_default)
+        prazo = st.text_input("Prazo", value=prazo_default)
         salvar = st.form_submit_button("Salvar Meta")
 
     if salvar:
-        df = carregar_metas()
-        df = pd.concat([df, pd.DataFrame([{
+        # remove meta antiga do responsável (se existir)
+        df_metas = df_metas[df_metas["responsavel"] != responsavel]
+
+        nova = pd.DataFrame([{
             "equipe": equipe,
             "responsavel": responsavel,
             "meta_crucial": meta,
             "indicador": indicador,
             "meta_final": meta_final,
             "prazo": prazo
-        }])])
-        df.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
-        st.success("Meta cadastrada.")
+        }])
+
+        df_metas = pd.concat([df_metas, nova], ignore_index=True)
+        df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
+
+        st.success("Meta salva com sucesso.")
+        st.rerun()
+
 
 # ======================================================
-# TAB 2 – MEDIDA DE DIREÇÃO
+# TAB 2 – MEDIDA DE DIREÇÃO (FILTRADA POR RESPONSÁVEL)
 # ======================================================
 with tabs[2]:
     st.subheader("Cadastrar Medida de Direção")
 
     df_metas = carregar_metas()
+    df_med = carregar_medidas()
 
-    if not df_metas.empty:
-        responsavel = st.selectbox("Responsável", df_metas["responsavel"].unique())
-        metas = df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"]
-        meta_sel = st.selectbox("Meta", metas)
+    if df_metas.empty:
+        st.warning("Cadastre metas antes.")
+        st.stop()
 
-        with st.form("form_medida"):
-            medidas = st.text_area("Medidas (uma por linha)")
-            freq = st.selectbox("Frequência", ["Diária", "Semanal", "Mensal", "Projeto"])
-            salvar = st.form_submit_button("Salvar")
+    responsavel = st.selectbox(
+        "Responsável",
+        df_metas["responsavel"].unique()
+    )
 
-        if salvar:
-            df_med = carregar_medidas()
-            novas = [{
-                "responsavel": responsavel,
-                "meta_crucial": meta_sel,
-                "medida_direcao": m.strip(),
-                "frequencia": freq
-            } for m in medidas.split("\n") if m.strip()]
+    metas_resp = df_metas[df_metas["responsavel"] == responsavel]["meta_crucial"]
+    meta_sel = st.selectbox("Meta", metas_resp)
 
-            df_med = pd.concat([df_med, pd.DataFrame(novas)])
-            df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
-            st.success("Medidas cadastradas.")
+    # 🔍 medidas já cadastradas
+    medidas_existentes = df_med[
+        (df_med["responsavel"] == responsavel) &
+        (df_med["meta_crucial"] == meta_sel)
+    ]
+
+    st.markdown("### 🧭 Medidas já cadastradas")
+    if medidas_existentes.empty:
+        st.info("Nenhuma medida cadastrada para esta meta.")
+    else:
+        for _, m in medidas_existentes.iterrows():
+            st.markdown(f"- {m['medida_direcao']} ({m['frequencia']})")
+
+    st.divider()
+
+    with st.form("form_medida"):
+        novas_medidas = st.text_area(
+            "Adicionar novas medidas (uma por linha)"
+        )
+        freq = st.selectbox(
+            "Frequência",
+            ["Diária", "Semanal", "Mensal", "Projeto"]
+        )
+        salvar = st.form_submit_button("Salvar Medidas")
+
+    if salvar:
+        novas = [{
+            "responsavel": responsavel,
+            "meta_crucial": meta_sel,
+            "medida_direcao": m.strip(),
+            "frequencia": freq
+        } for m in novas_medidas.split("\n") if m.strip()]
+
+        df_med = pd.concat([df_med, pd.DataFrame(novas)], ignore_index=True)
+        df_med.to_csv(MEDIDAS_PATH, index=False, encoding="utf-8-sig")
+
+        st.success("Medidas adicionadas.")
+        st.rerun()
 
 # ======================================================
 # TAB 3 – VISÃO GERAL (AGRUPADO + TÍTULO EM DESTAQUE)
