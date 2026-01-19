@@ -192,7 +192,7 @@ with tabs[2]:
             st.success("Medidas cadastradas.")
 
 # ======================================================
-# TAB 3 – VISÃO GERAL (AGRUPADO POR EQUIPE)
+# TAB 3 – VISÃO GERAL (AGRUPADO + TÍTULO EM DESTAQUE)
 # ======================================================
 with tabs[3]:
     st.subheader("🎯 Metas por Equipe")
@@ -206,25 +206,26 @@ with tabs[3]:
     if df_metas.empty:
         st.info("Nenhuma meta cadastrada.")
     else:
-        # Agrupa por equipe
         for equipe, metas_eq in df_metas.groupby("equipe"):
             st.markdown(f"## 🏷️ Equipe: {equipe}")
             st.divider()
 
             for idx, meta in metas_eq.iterrows():
-                titulo = f"🎯 {meta['meta_crucial']}"
-                subtitulo = f"Responsável: {meta['responsavel']}"
+                with st.expander("📌 Abrir meta"):
+                    # ---------- CABEÇALHO DA META ----------
+                    col_titulo, col_acoes = st.columns([4, 1])
 
-                with st.expander(f"{titulo}\n{subtitulo}"):
+                    with col_titulo:
+                        st.markdown(
+                            f"### 🎯 {meta['meta_crucial']}\n"
+                            f"<span style='color:gray'>Responsável: {meta['responsavel']}</span>",
+                            unsafe_allow_html=True
+                        )
 
-                    # ---------- BOTÕES ----------
-                    col1, col2 = st.columns([1, 1])
-
-                    with col1:
+                    with col_acoes:
                         if st.button("✏️ Editar", key=f"edit_{idx}"):
                             st.session_state.meta_em_edicao = idx
 
-                    with col2:
                         if st.button("🗑️ Excluir", key=f"del_{idx}"):
                             df_metas = df_metas.drop(idx)
                             df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
@@ -254,7 +255,6 @@ with tabs[3]:
                             ]
                             df_metas.to_csv(METAS_PATH, index=False, encoding="utf-8-sig")
 
-                            # Atualiza medidas se o nome mudou
                             df_med.loc[
                                 df_med["meta_crucial"] == meta["meta_crucial"],
                                 "meta_crucial"
@@ -276,7 +276,6 @@ with tabs[3]:
                         st.markdown(f"**Prazo:** {meta['prazo']}")
 
                         st.markdown("### 🧭 Medidas de Direção")
-
                         medidas = df_med[df_med["meta_crucial"] == meta["meta_crucial"]]
 
                         if medidas.empty:
