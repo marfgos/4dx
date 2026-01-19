@@ -10,8 +10,8 @@ from office365.runtime.auth.user_credential import UserCredential
 # ======================================================
 
 SHAREPOINT_SITE = "https://dellavolpecombr.sharepoint.com/sites/DellaVolpe"
-SHAREPOINT_USERNAME = "SEU_EMAIL@dellavolpe.com.br"
-SHAREPOINT_PASSWORD = "SUA_SENHA_OU_APP_PASSWORD"
+SHAREPOINT_USERNAME = "marcos.silva@dellavolpe.com.br"
+SHAREPOINT_PASSWORD = "38213824rR##"
 
 # ======================================================
 # 📁 CAMINHOS DOS ARQUIVOS (SEM PASTA)
