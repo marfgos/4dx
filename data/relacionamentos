@@ -1,0 +1,42 @@
+🔗 Relacionamentos entre os CSVs
+equipes.csv → usuarios.csv
+
+equipes.equipe 1 : N usuarios.equipe
+👉 Uma equipe pode ter vários usuários
+👉 Um usuário pertence a apenas uma equipe
+
+equipes.csv → metas_cruciais.csv
+
+equipes.equipe 1 : N metas_cruciais.equipe
+👉 Uma equipe pode ter várias metas
+👉 Cada meta pertence a uma equipe
+
+usuarios.csv → metas_cruciais.csv
+
+usuarios.nome 1 : 1 metas_cruciais.responsavel
+👉 Um responsável tem apenas uma meta crucial
+👉 Cada meta tem um único responsável
+
+usuarios.csv → medidas_direcao.csv
+
+usuarios.nome 1 : N medidas_direcao.responsavel
+👉 Um usuário pode ter várias medidas de direção
+
+metas_cruciais.csv → medidas_direcao.csv
+
+(metas_cruciais.responsavel + metas_cruciais.meta_crucial)
+1 : N
+(medidas_direcao.responsavel + medidas_direcao.meta_crucial)
+👉 Uma meta pode ter várias medidas de direção
+
+usuarios.csv → semanas.csv
+
+usuarios.nome 1 : N semanas.responsavel
+👉 Um usuário possui vários registros semanais
+
+metas_cruciais.csv → semanas.csv
+
+(metas_cruciais.responsavel + metas_cruciais.meta_crucial)
+1 : N
+(semanas.responsavel + semanas.meta_crucial)
+👉 Uma meta possui histórico semanal contínuo
