@@ -128,8 +128,8 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
     <h1>RECUSAS <span>VALE</span><br>RETIDAS NA REDE TDV</h1>
     <p class="sub">Cargas recusadas na Vale aguardando emissão de nova coleta de reentrega — apresentação à Gerência Operacional.</p>
     <div class="capa-meta">
-      <div>Cargas paradas<b>159 recusas</b></div>
-      <div>Valor imobilizado<b>R$ 8,29 milhões</b></div>
+      <div>Cargas paradas<b>156 recusas</b></div>
+      <div>Valor imobilizado<b>R$ 8,27 milhões</b></div>
       <div>Base<b>21/07/2026</b></div>
     </div>
     <div class="foot"><span>Torre de Controle TDV</span><span>Confidencial — uso interno</span></div>
@@ -139,10 +139,10 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
   <section class="slide">
     <div class="eyebrow">O Problema</div>
     <h2>Carga recusada e sem reentrega</h2><div class="rule"></div>
-    <p class="lead" style="margin-bottom:2rem"><b>159 cargas foram recusadas no recebimento da Vale.</b> Para reentregar, a Vale precisa emitir uma nova coleta — e a maior parte segue parada nos armazéns TDV — sem essa emissão, o físico não anda.</p>
+    <p class="lead" style="margin-bottom:2rem"><b>156 cargas foram recusadas no recebimento da Vale.</b> Para reentregar, a Vale precisa emitir uma nova coleta — e a maior parte segue parada nos armazéns TDV — sem essa emissão, o físico não anda.</p>
     <div class="kpis">
-      <div class="kpi red"><div class="kpi-v">R$ 6,75<span style="font-size:1.6rem"> mi</span></div><div class="kpi-l">imobilizados <b>sem coleta de reentrega</b><small>131 das 159 cargas</small></div></div>
-      <div class="kpi"><div class="kpi-v">131</div><div class="kpi-l">cargas paradas aguardando ação da Vale<small>de um total de 159 recusas</small></div></div>
+      <div class="kpi red"><div class="kpi-v">R$ 6,73<span style="font-size:1.6rem"> mi</span></div><div class="kpi-l">imobilizados <b>sem coleta de reentrega</b><small>128 das 156 cargas</small></div></div>
+      <div class="kpi"><div class="kpi-v">128</div><div class="kpi-l">cargas paradas aguardando ação da Vale<small>de um total de 156 recusas</small></div></div>
       <div class="kpi red"><div class="kpi-v">187</div><div class="kpi-l">dias parado no caso mais antigo<small>desde 15/01/2026 — quase 6 meses</small></div></div>
     </div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
@@ -158,7 +158,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
         <table style="margin-top:1.6rem">
           <thead><tr><th>Armazém TDV (físico)</th><th class="r">Cargas</th><th class="r">Valor</th></tr></thead>
           <tbody id="tFilial"></tbody>
-          <tfoot><tr><td class="val">TOTAL</td><td class="r val">159</td><td class="r val">R$ 8.290.476,46</td></tr></tfoot>
+          <tfoot><tr><td class="val">TOTAL</td><td class="r val">156</td><td class="r val">R$ 8.271.846,37</td></tr></tfoot>
         </table>
       </div>
       <div class="chartbox"><canvas id="cFilial"></canvas></div>
@@ -176,7 +176,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
         <div style="margin-top:1.8rem;display:flex;flex-direction:column;gap:1rem">
           <div class="bar-row"><div class="t"><b>MRO = SIM · responsabilidade Vale</b><span>104 cargas</span></div><div class="track"><div class="fill r" style="width:50%"></div></div><div style="margin-top:.5rem;font-weight:700;color:var(--meta);font-size:1.15rem">R$ 4.162.655,44</div></div>
           <div class="bar-row"><div class="t"><b>MRO = NÃO</b><span>45 cargas</span></div><div class="track"><div class="fill o" style="width:49%"></div></div><div style="margin-top:.5rem;font-weight:700;color:#555;font-size:1.15rem">R$ 4.108.516,60</div></div>
-          <div class="bar-row"><div class="t"><b>Sem cadastro (".")</b><span>10 cargas</span></div><div class="track"><div class="fill" style="width:1%;background:#bbb"></div></div><div style="margin-top:.5rem;font-weight:700;color:#888;font-size:1.05rem">R$ 19.304,42</div></div>
+          <div class="bar-row"><div class="t"><b>Sem cadastro (".")</b><span>7 cargas</span></div><div class="track"><div class="fill" style="width:1%;background:#bbb"></div></div><div style="margin-top:.5rem;font-weight:700;color:#888;font-size:1.05rem">R$ 674,33</div></div>
         </div>
       </div>
       <div class="chartbox"><canvas id="cMro"></canvas></div>
@@ -196,7 +196,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
       <div class="side">
         <div class="bar-row"><div class="t"><b style="color:var(--verde)">Vale emitiu reentrega</b><span>26 cargas</span></div><div class="track"><div class="fill g" style="width:25%"></div></div></div>
         <div class="bar-row"><div class="t"><b style="color:var(--meta)">Vale NÃO emitiu</b><span>78 cargas</span></div><div class="track"><div class="fill r" style="width:75%"></div></div><div style="margin-top:.5rem;font-weight:700;color:var(--meta);font-size:1.3rem">R$ 2.626.602,88 parados</div></div>
-        <p style="color:#666;font-size:1.05rem;line-height:1.4;padding:0 .3rem">No total, a Vale gerou coleta de reentrega para apenas <b>28 das 159 cargas</b> (R$ 1,54 mi). As 131 restantes seguem sem solução.</p>
+        <p style="color:#666;font-size:1.05rem;line-height:1.4;padding:0 .3rem">No total, a Vale gerou coleta de reentrega para apenas <b>28 das 156 cargas</b> (R$ 1,54 mi). As 128 restantes seguem sem solução.</p>
       </div>
     </div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
@@ -251,7 +251,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
         <li><b>Prioridade 1 —</b> emissão imediata das <b>78 coletas MRO</b> (responsabilidade Vale): <span class="hl">R$ 2.626.602,88</span>, algumas paradas há mais de 5 meses.</li>
         <li><b>Prioridade por destino —</b> começar por <b>Nova Lima</b> (R$ 1,06 mi), <b>São Luís</b> (R$ 977 mil) e <b>Parauapebas</b> (R$ 385 mil).</li>
         <li><b>Prazo de resposta —</b> definir data-limite da Vale para emissão e liberar a fila de alto valor (top 8 notas = R$ 1,96 mi).</li>
-        <li><b>Tratar à parte —</b> as 10 cargas "sem cadastro" e as 45 MRO=NÃO, com alçada específica.</li>
+        <li><b>Tratar à parte —</b> as 7 cargas "sem cadastro" e as 45 MRO=NÃO, com alçada específica.</li>
       </ul>
     </div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
@@ -278,7 +278,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 
 <script>
 const DATA = {
-  filial: [["Contagem MG",113,3231107.57],["Parauapebas - PA",37,2794289.85],["São Luís - MA",8,2260660.84],["Itabira - MG",1,4418.20]],
+  filial: [["Contagem MG",113,3231107.57],["Parauapebas - PA",34,2775659.76],["São Luís - MA",8,2260660.84],["Itabira - MG",1,4418.20]],
   dest: [["NOVA LIMA",43,1062843.21],["SÃO LUÍS",5,977042.41],["PARAUAPEBAS",11,384896.02],
          ["OURO PRETO",1,100000.00],["BARÃO DE COCAIS",4,56935.94],["ITABIRITO",10,40451.86],["CONGONHAS",4,4433.44]],
   time: {labels:["Fev","Mar","Abr","Mai","Jun","Jul"], q:[35,10,11,0,10,12], v:[109749.38,51161.59,517520.38,0,1557500.51,390671.02]},
@@ -330,7 +330,7 @@ function buildChart(i){
   if(i===3 && !charts.mro){
     charts.mro=new Chart(document.getElementById('cMro'),{type:'doughnut',
       data:{labels:['MRO = SIM (Vale)','MRO = NÃO','Sem cadastro'],
-        datasets:[{data:[4162655.44,4108516.60,19304.42],backgroundColor:[C.meta,C.laranja,'#c9c9d0'],borderWidth:2,borderColor:'#fff'}]},
+        datasets:[{data:[4162655.44,4108516.60,674.33],backgroundColor:[C.meta,C.laranja,'#c9c9d0'],borderWidth:2,borderColor:'#fff'}]},
       options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:13}}},
         tooltip:{callbacks:{label:c=>' '+c.label+': '+BRL(c.parsed)}}}}});
   }
