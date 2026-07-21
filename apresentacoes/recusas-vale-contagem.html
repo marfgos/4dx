@@ -172,10 +172,10 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
     <h2>R$ 2,63 mi a Vale se recusou a coletar</h2><div class="rule"></div>
     <div class="grid2">
       <div>
-        <p class="lead"><b>A coluna MRO mostra a posição da Vale sobre a nova coleta.</b> <b>MRO = SIM</b> são as NFs que a <b>Vale se recusou a gerar a coleta</b> — é aqui que está o problema e o pedido. <b>MRO = NÃO</b> ainda estão <b>em tratativa</b> (a Vale não recusou).</p>
+        <p class="lead">As recusas se dividem pela posição da Vale sobre a nova coleta. Em um grupo, a <b>Vale se recusou a criar uma nova coleta</b> — é aqui que está o problema e o pedido. No outro, a carga <b>ainda está em tratativa</b> (a Vale não recusou).</p>
         <div style="margin-top:1.8rem;display:flex;flex-direction:column;gap:1rem">
-          <div class="bar-row"><div class="t"><b>MRO = SIM · Vale recusou coletar</b><span>85 cargas</span></div><div class="track"><div class="fill r" style="width:42%"></div></div><div style="margin-top:.5rem;font-weight:700;color:var(--meta);font-size:1.15rem">R$ 2.627.277,21</div></div>
-          <div class="bar-row"><div class="t"><b>MRO = NÃO · ainda em tratativa</b><span>43 cargas</span></div><div class="track"><div class="fill o" style="width:66%"></div></div><div style="margin-top:.5rem;font-weight:700;color:#555;font-size:1.15rem">R$ 4.107.513,19</div></div>
+          <div class="bar-row"><div class="t"><b>Vale se recusou a criar a coleta</b><span>85 cargas</span></div><div class="track"><div class="fill r" style="width:42%"></div></div><div style="margin-top:.5rem;font-weight:700;color:var(--meta);font-size:1.15rem">R$ 2.627.277,21</div></div>
+          <div class="bar-row"><div class="t"><b>Ainda em tratativa com a Vale</b><span>43 cargas</span></div><div class="track"><div class="fill o" style="width:66%"></div></div><div style="margin-top:.5rem;font-weight:700;color:#555;font-size:1.15rem">R$ 4.107.513,19</div></div>
         </div>
       </div>
       <div class="chartbox"><canvas id="cMro"></canvas></div>
@@ -187,7 +187,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
   <section class="slide">
     <div class="eyebrow">Há quanto tempo está parado</div>
     <h2>Acúmulo desde fevereiro/2026</h2><div class="rule"></div>
-    <p class="lead" style="margin-bottom:1rem">As 85 recusas MRO sem reentrega estão paradas <b>desde 02/02/2026 — até 169 dias</b>. Todo mês novas cargas entram no estoque parado sem que as antigas saiam.</p>
+    <p class="lead" style="margin-bottom:1rem">As 85 recusas em que a Vale se recusou a criar a coleta estão paradas <b>desde 02/02/2026 — até 169 dias</b>. Todo mês novas cargas entram no estoque parado sem que as antigas saiam.</p>
     <div class="chartbox sm"><canvas id="cTime"></canvas></div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
   </section>
@@ -195,7 +195,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
   <!-- 6 DESTINOS -->
   <section class="slide">
     <div class="eyebrow">Para onde a carga precisa ir</div>
-    <h2>Destinos das cargas paradas (MRO)</h2><div class="rule"></div>
+    <h2>Destinos das cargas que a Vale recusou coletar</h2><div class="rule"></div>
     <div class="grid2">
       <div class="chartbox"><canvas id="cDest"></canvas></div>
       <div>
@@ -218,7 +218,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
       <thead><tr><th>Nota</th><th>Destino</th><th>Fornecedor</th><th class="r">Valor</th><th class="r">Dias parado</th></tr></thead>
       <tbody id="tNotas"></tbody>
     </table>
-    <p style="margin-top:1.4rem;color:#666;font-size:1.05rem">As 8 maiores notas somam <b class="hl">R$ 1,96 milhão</b> — 75% do valor MRO parado concentrado em pouquíssimas cargas de alto valor.</p>
+    <p style="margin-top:1.4rem;color:#666;font-size:1.05rem">As 8 maiores notas somam <b class="hl">R$ 1,96 milhão</b> — 75% do valor parado concentrado em pouquíssimas cargas de alto valor.</p>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
   </section>
 
@@ -229,10 +229,10 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
     <div class="ask">
       <h3>Emitir as 85 coletas de reentrega pendentes</h3>
       <ul>
-        <li><b>Prioridade 1 —</b> emissão imediata das <b>85 coletas MRO</b> (responsabilidade Vale): <span class="hl">R$ 2.627.277,21</span>, algumas paradas há mais de 5 meses.</li>
+        <li><b>Prioridade 1 —</b> criação imediata das <b>85 coletas que a Vale recusou</b>: <span class="hl">R$ 2.627.277,21</span>, algumas paradas há mais de 5 meses.</li>
         <li><b>Prioridade por destino —</b> começar por <b>Nova Lima</b> (R$ 1,06 mi), <b>São Luís</b> (R$ 977 mil) e <b>Parauapebas</b> (R$ 386 mil).</li>
         <li><b>Prazo de resposta —</b> definir data-limite da Vale para emissão e liberar a fila de alto valor (top 8 notas = R$ 1,96 mi).</li>
-        <li><b>Tratar à parte —</b> as 43 recusas MRO=NÃO (ainda em tratativa com a Vale), com acompanhamento próprio.</li>
+        <li><b>Tratar à parte —</b> as 43 recusas ainda em tratativa com a Vale, com acompanhamento próprio.</li>
       </ul>
     </div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
@@ -310,7 +310,7 @@ function buildChart(i){
   }
   if(i===3 && !charts.mro){
     charts.mro=new Chart(document.getElementById('cMro'),{type:'doughnut',
-      data:{labels:['MRO = SIM · Vale recusou','MRO = NÃO · em tratativa'],
+      data:{labels:['Vale recusou criar a coleta','Ainda em tratativa'],
         datasets:[{data:[2627277.21,4107513.19],backgroundColor:[C.meta,C.laranja],borderWidth:2,borderColor:'#fff'}]},
       options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:13}}},
         tooltip:{callbacks:{label:c=>' '+c.label+': '+BRL(c.parsed)}}}}});
