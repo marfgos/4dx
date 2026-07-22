@@ -79,6 +79,10 @@ tr:nth-child(even) td{background:#fff}
 tr:nth-child(odd) td{background:#fbfbfd}
 td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 .val{font-weight:700;color:var(--escuro)}
+.mini-h{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--laranja-e);font-size:.98rem;margin-bottom:.4rem}
+.mini{width:100%;border-collapse:collapse}
+.mini td{padding:.34rem .5rem;font-size:.98rem;border-bottom:1px solid #e8e8ee;color:#33333f;background:#fff!important}
+.mini td:last-child{text-align:right;font-weight:700;color:var(--escuro)}
 .tag{display:inline-block;background:#efe6dd;color:var(--laranja-e);font-weight:700;
   padding:.08rem .55rem;border-radius:4px;font-size:.9rem}
 .tag.red{background:#f7dede;color:var(--meta)}
@@ -238,7 +242,34 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
   </section>
 
-  <!-- 9 ENCERRAMENTO -->
+  <!-- 9 EM TRATATIVA -->
+  <section class="slide">
+    <div class="eyebrow">A outra frente — em tratativa com a Vale</div>
+    <h2>43 casos em tratativa: status e origem</h2><div class="rule"></div>
+    <p class="lead" style="margin-bottom:1.2rem">Além do pedido, a TDV acompanha <b>43 recusas ainda em tratativa</b> (R$ 4,11 mi). A maioria é <b>divergência de saldo/pedido/material ou cancelamento</b>, e há casos parados <b>há até 187 dias</b>.</p>
+    <div class="grid2">
+      <div class="chartbox"><canvas id="cStatus"></canvas></div>
+      <div>
+        <table>
+          <thead><tr><th>Status</th><th class="r">Casos</th><th class="r">Valor</th></tr></thead>
+          <tbody id="tStatus"></tbody>
+        </table>
+        <div style="display:flex;gap:1.6rem;margin-top:1.4rem">
+          <div style="flex:1">
+            <div class="mini-h">Casos por filial</div>
+            <table class="mini"><tbody id="tFilTrat"></tbody></table>
+          </div>
+          <div style="flex:1">
+            <div class="mini-h">Tempo em aberto</div>
+            <table class="mini"><tbody id="tAging"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
+  </section>
+
+  <!-- 10 ENCERRAMENTO -->
   <section class="slide dark">
     <div class="capa-top"><span class="badge">TDV</span>
       <span style="font-family:'Barlow Condensed',sans-serif;letter-spacing:.14em;color:#8a8aa0;font-weight:600">TORRE DE CONTROLE · DELLA VOLPE</span></div>
@@ -260,6 +291,12 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 <script>
 const DATA = {
   filial: [["Parauapebas - PA",34,2775659.76],["São Luís - MA",8,2260660.84],["Contagem MG",85,1694051.60],["Itabira - MG",1,4418.20]],
+  tratativa: {
+    status:[["Saldo/Pedido/Material Divergente ou Cancelado",25,3477062.80],["NF fora do passaporte",8,51022.10],["Devolvido por Nota Inapta",6,22489.06],["Erro filial",4,556939.23]],
+    statusLbl:["Saldo/Pedido/Material","NF fora do passaporte","Devolvido · Nota Inapta","Erro filial"],
+    filial:[["Contagem MG",23],["Parauapebas - PA",16],["São Luíz - MA",3],["Itabira - MG",1]],
+    aging:[["0–30 dias",21],["31–60 dias",9],["61–90 dias",5],["90+ dias",8]]
+  },
   dest: [["NOVA LIMA",43,1062843.21],["SÃO LUÍS",5,977042.41],["PARAUAPEBAS",18,385570.35],
          ["OURO PRETO",1,100000.00],["BARÃO DE COCAIS",4,56935.94],["ITABIRITO",10,40451.86],["CONGONHAS",4,4433.44]],
   time: {labels:["Fev","Mar","Abr","Mai","Jun","Jul"], q:[35,10,11,0,10,19], v:[109749.38,51161.59,517520.38,0,1557500.51,391345.35]},
@@ -299,6 +336,12 @@ document.getElementById('tNotas').innerHTML = DATA.notas.map(n=>
   `<tr><td class="val">${n[0]}</td><td>${n[1]}</td><td>${n[2]}</td><td class="r val">${BRL(n[3])}</td><td class="r"><span class="tag ${n[4]>90?'red':''}">${n[4]} dias</span></td></tr>`).join('');
 document.getElementById('tFilial').innerHTML = DATA.filial.map(d=>
   `<tr><td>${d[0]}</td><td class="r">${d[1]}</td><td class="r val">${BRL(d[2])}</td></tr>`).join('');
+document.getElementById('tStatus').innerHTML = DATA.tratativa.status.map(s=>
+  `<tr><td>${s[0]}</td><td class="r">${s[1]}</td><td class="r val">${BRL(s[2])}</td></tr>`).join('');
+document.getElementById('tFilTrat').innerHTML = DATA.tratativa.filial.map(f=>
+  `<tr><td>${f[0]}</td><td>${f[1]}</td></tr>`).join('');
+document.getElementById('tAging').innerHTML = DATA.tratativa.aging.map(a=>
+  `<tr><td>${a[0]}</td><td>${a[1]}</td></tr>`).join('');
 
 function buildChart(i){
   if(i===2 && !charts.filial){
@@ -325,6 +368,13 @@ function buildChart(i){
         tooltip:{callbacks:{label:c=>c.dataset.yAxisID==='y'?' '+BRL(c.parsed.y):' '+c.parsed.y+' cargas'}}},
         scales:{y:{position:'left',ticks:{callback:v=>'R$ '+(v/1000)+'k'},title:{display:true,text:'Valor parado'}},
           y2:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Cargas'}}}}});
+  }
+  if(i===8 && !charts.status){
+    charts.status=new Chart(document.getElementById('cStatus'),{type:'doughnut',
+      data:{labels:DATA.tratativa.statusLbl,
+        datasets:[{data:DATA.tratativa.status.map(s=>s[1]),backgroundColor:[C.laranja,C.escuro,'#8A8A96',C.meta],borderWidth:2,borderColor:'#fff'}]},
+      options:{cutout:'55%',plugins:{legend:{position:'bottom',labels:{padding:12,font:{size:12.5}}},
+        tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed+' casos'}}}}});
   }
   if(i===5 && !charts.dest){
     charts.dest=new Chart(document.getElementById('cDest'),{type:'bar',
