@@ -83,6 +83,13 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 .mini{width:100%;border-collapse:collapse}
 .mini td{padding:.34rem .5rem;font-size:.98rem;border-bottom:1px solid #e8e8ee;color:#33333f;background:#fff!important}
 .mini td:last-child{text-align:right;font-weight:700;color:var(--escuro)}
+tr.clk{cursor:pointer}
+tr.clk:hover>td{background:#f3e8dd!important}
+tr.sel>td{background:#fbe4d3!important}
+tr.sel>td:first-child{box-shadow:inset 3px 0 0 var(--laranja)}
+tr.off>td{opacity:.38}
+.hint{margin-top:.9rem;font-size:.82rem;color:#8A8A96}
+.hint b{color:var(--laranja-e);font-weight:700}
 .tag{display:inline-block;background:#efe6dd;color:var(--laranja-e);font-weight:700;
   padding:.08rem .55rem;border-radius:4px;font-size:.9rem}
 .tag.red{background:#f7dede;color:var(--meta)}
@@ -264,6 +271,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
             <table class="mini"><tbody id="tAging"></tbody></table>
           </div>
         </div>
+        <p class="hint" id="hintTrat"><b>Clique</b> numa linha (filial, status ou tempo) para filtrar as demais · clique de novo para limpar.</p>
       </div>
     </div>
     <div class="foot"><span>Recusas Vale · Rede TDV</span><span>TDV</span></div>
@@ -292,10 +300,11 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 const DATA = {
   filial: [["Parauapebas - PA",34,2775659.76],["São Luís - MA",8,2260660.84],["Contagem MG",85,1694051.60],["Itabira - MG",1,4418.20]],
   tratativa: {
-    status:[["Saldo/Pedido/Material Divergente ou Cancelado",25,3477062.80],["NF fora do passaporte",8,51022.10],["Devolvido por Nota Inapta",6,22489.06],["Erro filial",4,556939.23]],
+    statusOrder:["Saldo/Pedido/Material Divergente ou Cancelado","NF fora do passaporte","Devolvido por Nota Inapta","Erro filial"],
     statusLbl:["Saldo/Pedido/Material","NF fora do passaporte","Devolvido · Nota Inapta","Erro filial"],
-    filial:[["Contagem MG",23],["Parauapebas - PA",16],["São Luíz - MA",3],["Itabira - MG",1]],
-    aging:[["0–30 dias",21],["31–60 dias",9],["61–90 dias",5],["90+ dias",8]]
+    filialOrder:["Contagem MG","Parauapebas - PA","São Luíz - MA","Itabira - MG"],
+    agingOrder:["0–30 dias","31–60 dias","61–90 dias","90+ dias"],
+    rows:[["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",1213.72],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",34.8],["Contagem MG","NF fora do passaporte","90+ dias",125.1],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",371.61],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",37.34],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",271.63],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",459.53],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","61–90 dias",300000],["Contagem MG","NF fora do passaporte","31–60 dias",1057.85],["Contagem MG","Devolvido por Nota Inapta","31–60 dias",2495],["Contagem MG","NF fora do passaporte","31–60 dias",12574.4],["Contagem MG","Erro filial","31–60 dias",23032.76],["Contagem MG","NF fora do passaporte","31–60 dias",2915.84],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","31–60 dias",25654.52],["Contagem MG","NF fora do passaporte","0–30 dias",210.97],["Contagem MG","Devolvido por Nota Inapta","0–30 dias",13110],["Contagem MG","NF fora do passaporte","0–30 dias",1629.84],["Contagem MG","NF fora do passaporte","0–30 dias",13000],["Contagem MG","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",772.66],["Contagem MG","Erro filial","0–30 dias",9340.67],["Contagem MG","Erro filial","0–30 dias",837.02],["Contagem MG","NF fora do passaporte","0–30 dias",19508.1],["Contagem MG","Devolvido por Nota Inapta","0–30 dias",733.79],["Itabira - MG","Devolvido por Nota Inapta","61–90 dias",4418.2],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","90+ dias",220.8],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","61–90 dias",560813.85],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","61–90 dias",224.97],["Parauapebas - PA","Erro filial","31–60 dias",523728.78],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","31–60 dias",14911.43],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",29382.76],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",57768.5],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",150],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",1366],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",1366],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",18480],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",356529.68],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",369899.55],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",9584.99],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",267397.26],["Parauapebas - PA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",178264.84],["São Luíz - MA","Devolvido por Nota Inapta","61–90 dias",702.84],["São Luíz - MA","Devolvido por Nota Inapta","31–60 dias",1029.23],["São Luíz - MA","Saldo/Pedido/Material Divergente ou Cancelado","0–30 dias",1281886.36]]
   },
   dest: [["NOVA LIMA",43,1062843.21],["SÃO LUÍS",5,977042.41],["PARAUAPEBAS",18,385570.35],
          ["OURO PRETO",1,100000.00],["BARÃO DE COCAIS",4,56935.94],["ITABIRITO",10,40451.86],["CONGONHAS",4,4433.44]],
@@ -336,12 +345,30 @@ document.getElementById('tNotas').innerHTML = DATA.notas.map(n=>
   `<tr><td class="val">${n[0]}</td><td>${n[1]}</td><td>${n[2]}</td><td class="r val">${BRL(n[3])}</td><td class="r"><span class="tag ${n[4]>90?'red':''}">${n[4]} dias</span></td></tr>`).join('');
 document.getElementById('tFilial').innerHTML = DATA.filial.map(d=>
   `<tr><td>${d[0]}</td><td class="r">${d[1]}</td><td class="r val">${BRL(d[2])}</td></tr>`).join('');
-document.getElementById('tStatus').innerHTML = DATA.tratativa.status.map(s=>
-  `<tr><td>${s[0]}</td><td class="r">${s[1]}</td><td class="r val">${BRL(s[2])}</td></tr>`).join('');
-document.getElementById('tFilTrat').innerHTML = DATA.tratativa.filial.map(f=>
-  `<tr><td>${f[0]}</td><td>${f[1]}</td></tr>`).join('');
-document.getElementById('tAging').innerHTML = DATA.tratativa.aging.map(a=>
-  `<tr><td>${a[0]}</td><td>${a[1]}</td></tr>`).join('');
+// ---- cross-filter da slide "em tratativa" ----
+const TR=DATA.tratativa, DIM={filial:0,status:1,aging:2};
+let filt=null;
+function aggr(rows,idx){const m={};rows.forEach(r=>{const k=r[idx];(m[k]=m[k]||{c:0,v:0}).c++;m[k].v+=r[3];});return m;}
+function subsetFor(dim){return (!filt||filt.dim===dim)?TR.rows:TR.rows.filter(r=>r[DIM[filt.dim]]===filt.val);}
+function esc(s){return s.replace(/'/g,"\\'");}
+function toggleTrat(dim,val){filt=(filt&&filt.dim===dim&&filt.val===val)?null:{dim,val};renderTrat();}
+function renderTrat(){
+  const sA=aggr(subsetFor('status'),1);
+  document.getElementById('tStatus').innerHTML=TR.statusOrder.map(s=>{const a=sA[s]||{c:0,v:0};
+    const sel=filt&&filt.dim==='status'&&filt.val===s?'sel':'';const off=filt&&filt.dim!=='status'&&!a.c?'off':'';
+    return `<tr class="clk ${sel} ${off}" onclick="toggleTrat('status','${esc(s)}')"><td>${s}</td><td class="r">${a.c}</td><td class="r val">${BRL(a.v)}</td></tr>`;}).join('');
+  const fA=aggr(subsetFor('filial'),0);
+  document.getElementById('tFilTrat').innerHTML=TR.filialOrder.map(f=>{const a=fA[f]||{c:0};
+    const sel=filt&&filt.dim==='filial'&&filt.val===f?'sel':'';const off=filt&&filt.dim!=='filial'&&!a.c?'off':'';
+    return `<tr class="clk ${sel} ${off}" onclick="toggleTrat('filial','${esc(f)}')"><td>${f}</td><td>${a.c}</td></tr>`;}).join('');
+  const gA=aggr(subsetFor('aging'),2);
+  document.getElementById('tAging').innerHTML=TR.agingOrder.map(g=>{const a=gA[g]||{c:0};
+    const sel=filt&&filt.dim==='aging'&&filt.val===g?'sel':'';const off=filt&&filt.dim!=='aging'&&!a.c?'off':'';
+    return `<tr class="clk ${sel} ${off}" onclick="toggleTrat('aging','${esc(g)}')"><td>${g}</td><td>${a.c}</td></tr>`;}).join('');
+  if(charts.status){charts.status.data.datasets[0].data=TR.statusOrder.map(s=>(sA[s]||{c:0}).c);charts.status.update();}
+  const h=document.getElementById('hintTrat');
+  if(h) h.innerHTML=filt?`Filtrando por <b>${filt.val}</b> · clique de novo (ou em outra linha) para trocar/limpar.`:`<b>Clique</b> numa linha (filial, status ou tempo) para filtrar as demais · clique de novo para limpar.`;
+}
 
 function buildChart(i){
   if(i===2 && !charts.filial){
@@ -372,9 +399,10 @@ function buildChart(i){
   if(i===8 && !charts.status){
     charts.status=new Chart(document.getElementById('cStatus'),{type:'doughnut',
       data:{labels:DATA.tratativa.statusLbl,
-        datasets:[{data:DATA.tratativa.status.map(s=>s[1]),backgroundColor:[C.laranja,C.escuro,'#8A8A96',C.meta],borderWidth:2,borderColor:'#fff'}]},
+        datasets:[{data:[0,0,0,0],backgroundColor:[C.laranja,C.escuro,'#8A8A96',C.meta],borderWidth:2,borderColor:'#fff'}]},
       options:{cutout:'55%',plugins:{legend:{position:'bottom',labels:{padding:12,font:{size:12.5}}},
         tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed+' casos'}}}}});
+    renderTrat();
   }
   if(i===5 && !charts.dest){
     charts.dest=new Chart(document.getElementById('cDest'),{type:'bar',
@@ -385,6 +413,7 @@ function buildChart(i){
         scales:{x:{ticks:{callback:v=>'R$ '+(v/1000)+'k'}}}}});
   }
 }
+renderTrat();
 go(0);
 </script>
 </body>
